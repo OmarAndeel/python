@@ -23,8 +23,8 @@ class Enemy:
             self.x = x
         self.y = 0
 
-        # Random color variation for enemies
-        color = random.choice([RED, MAGENTA, ORANGE, "#FF6347", "#DC143C"])
+        # Random color variation for enemies from vibrant palette
+        color = random.choice(ENEMY_COLORS)
 
         # Create enemy shape (alien-like UFO shape)
         self.create_shape(color)
@@ -45,7 +45,8 @@ class Enemy:
             tags="enemy"
         )
 
-        # Dome on top
+        # Dome on top (use neon cyan / golden accent)
+        dome_color = random.choice([NEON_CYAN, GOLD, AMBER, HOT_PINK])
         dome_width = self.width // 3
         dome_height = self.height // 3
         self.dome = self.canvas.create_oval(
@@ -53,9 +54,9 @@ class Enemy:
             self.y - dome_height // 2,
             self.x + dome_width // 2,
             self.y + dome_height // 2,
-            fill=CYAN,
+            fill=dome_color,
             outline=WHITE,
-            width=1,
+            width=2,
             tags="enemy"
         )
 

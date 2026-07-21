@@ -17,15 +17,15 @@ class SpaceShooterGame:
         self.root.resizable(False, False)
 
         # Create main frame
-        self.frame = tk.Frame(root, bg=BLACK)
+        self.frame = tk.Frame(root, bg=DARK_BLUE)
         self.frame.pack(fill=tk.BOTH, expand=True)
 
-        # Create canvas
+        # Create canvas with deep space blue background
         self.canvas = tk.Canvas(
             self.frame,
             width=WINDOW_WIDTH,
             height=WINDOW_HEIGHT,
-            bg=BLACK,
+            bg=DARK_BLUE,
             highlightthickness=0
         )
         self.canvas.pack()
@@ -77,13 +77,12 @@ class SpaceShooterGame:
         self.game_loop()
 
     def create_star_field(self):
-        """Create a scrolling star field background."""
+        """Create a scrolling star field background with colorful stars."""
         for _ in range(STAR_COUNT):
             x = random.randint(0, WINDOW_WIDTH)
             y = random.randint(0, WINDOW_HEIGHT)
             size = random.randint(STAR_MIN_SIZE, STAR_MAX_SIZE)
-            brightness = random.randint(100, 255)
-            color = f"#{brightness:02x}{brightness:02x}{brightness:02x}"
+            color = random.choice(STAR_COLORS)
 
             star = self.canvas.create_oval(
                 x, y, x + size, y + size,
@@ -96,7 +95,8 @@ class SpaceShooterGame:
                 "x": x,
                 "y": y,
                 "size": size,
-                "speed": random.uniform(0.5, 2.0)
+                "color": color,
+                "speed": random.uniform(0.5, 2.5)  # Wider speed range for depth
             })
 
     def update_stars(self):
@@ -118,11 +118,19 @@ class SpaceShooterGame:
 
     def show_start_screen(self):
         """Display the title/start screen."""
+        # Title shadow (for depth/readability)
+        self.canvas.create_text(
+            WINDOW_WIDTH // 2 + 2, WINDOW_HEIGHT // 2 - 58,
+            text="🚀 SPACE SHOOTER 🚀",
+            fill=HUD_SHADOW_COLOR,
+            font=("Arial", 36, "bold"),
+            tags="ui"
+        )
         # Title
         self.title_text = self.canvas.create_text(
             WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 60,
             text="🚀 SPACE SHOOTER 🚀",
-            fill=CYAN,
+            fill=GOLD,
             font=("Arial", 36, "bold"),
             tags="ui"
         )
@@ -131,8 +139,8 @@ class SpaceShooterGame:
         subtitle = self.canvas.create_text(
             WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2,
             text="Defend Earth from the alien invasion!",
-            fill=LIGHT_GRAY,
-            font=("Arial", 16),
+            fill=NEON_CYAN,
+            font=("Arial", 16, "bold"),
             tags="ui"
         )
 
@@ -153,11 +161,19 @@ class SpaceShooterGame:
             )
             y_pos += 25
 
+        # Start prompt shadow
+        self.canvas.create_text(
+            WINDOW_WIDTH // 2 + 2, WINDOW_HEIGHT // 2 + 142,
+            text="Click or press ENTER to start",
+            fill=HUD_SHADOW_COLOR,
+            font=("Arial", 18, "bold"),
+            tags="ui"
+        )
         # Start prompt
         self.start_text = self.canvas.create_text(
             WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 140,
             text="Click or press ENTER to start",
-            fill=YELLOW,
+            fill=GOLD,
             font=("Arial", 18, "bold"),
             tags="ui"
         )
@@ -169,7 +185,7 @@ class SpaceShooterGame:
         """Blink the start prompt."""
         if self.start_text and not self.running and not self.game_over:
             current = self.canvas.itemcget(self.start_text, "fill")
-            new_color = YELLOW if current == DARK_GRAY else DARK_GRAY
+            new_color = GOLD if current == HUD_BORDER_COLOR else HUD_BORDER_COLOR
             try:
                 self.canvas.itemconfig(self.start_text, fill=new_color)
             except tk.TclError:
@@ -200,22 +216,63 @@ class SpaceShooterGame:
         self.create_hud()
 
     def create_hud(self):
-        """Create the heads-up display (score and lives)."""
-        self.score_text = self.canvas.create_text(
-            10, 10,
+        """Create the heads-up display (score and lives) with modern styling."""
+
+        # --- Score HUD ---
+        # Background panel for score
+        self.score_bg = self.canvas.create_rectangle(
+            HUD_PANEL_PADDING - 5, HUD_PANEL_PADDING - 5,
+            220, HUD_PANEL_PADDING + SCORE_FONT_SIZE + 10,
+            fill=HUD_BG_COLOR,
+            outline=HUD_BORDER_COLOR,
+            width=2,
+            tags="hud"
+        )
+        # Score shadow text
+        self.canvas.create_text(
+            HUD_PANEL_PADDING + 2, HUD_PANEL_PADDING + 2,
             anchor="nw",
             text=f"Score: {self.score}",
-            fill=WHITE,
-            font=("Arial", SCORE_FONT_SIZE, "bold"),
+            fill=HUD_SHADOW_COLOR,
+            font=(HUD_FONT, SCORE_FONT_SIZE, "bold"),
+            tags="hud"
+        )
+        # Score main text in gold
+        self.score_text = self.canvas.create_text(
+            HUD_PANEL_PADDING, HUD_PANEL_PADDING,
+            anchor="nw",
+            text=f"Score: {self.score}",
+            fill=GOLD,
+            font=(HUD_FONT, SCORE_FONT_SIZE, "bold"),
             tags="hud"
         )
 
-        self.lives_text = self.canvas.create_text(
-            WINDOW_WIDTH - 10, 10,
+        # --- Lives HUD ---
+        # Background panel for lives
+        self.lives_bg = self.canvas.create_rectangle(
+            WINDOW_WIDTH - 180, HUD_PANEL_PADDING - 5,
+            WINDOW_WIDTH - HUD_PANEL_PADDING + 5, HUD_PANEL_PADDING + LIVES_FONT_SIZE + 10,
+            fill=HUD_BG_COLOR,
+            outline=HUD_BORDER_COLOR,
+            width=2,
+            tags="hud"
+        )
+        # Lives shadow text
+        self.canvas.create_text(
+            WINDOW_WIDTH - HUD_PANEL_PADDING + 2, HUD_PANEL_PADDING + 2,
             anchor="ne",
-            text=f"Lives: {self.player.lives}",
-            fill=GREEN,
-            font=("Arial", SCORE_FONT_SIZE, "bold"),
+            text=f"♥ {self.player.lives}",
+            fill=HUD_SHADOW_COLOR,
+            font=(HUD_FONT, LIVES_FONT_SIZE, "bold"),
+            tags="hud"
+        )
+        # Lives main text in hot pink with heart symbol
+        self.lives_text = self.canvas.create_text(
+            WINDOW_WIDTH - HUD_PANEL_PADDING, HUD_PANEL_PADDING,
+            anchor="ne",
+            text=f"♥ {self.player.lives}",
+            fill=HOT_PINK,
+            font=(HUD_FONT, LIVES_FONT_SIZE, "bold"),
             tags="hud"
         )
 
@@ -224,7 +281,7 @@ class SpaceShooterGame:
         if self.score_text:
             self.canvas.itemconfig(self.score_text, text=f"Score: {self.score}")
         if self.lives_text:
-            self.canvas.itemconfig(self.lives_text, text=f"Lives: {self.player.lives}")
+            self.canvas.itemconfig(self.lives_text, text=f"♥ {self.player.lives}")
 
     def show_game_over(self):
         """Display the game over screen."""
@@ -234,6 +291,22 @@ class SpaceShooterGame:
         # Remove HUD
         self.canvas.delete("hud")
 
+        # Semi-transparent overlay for game over screen
+        self.canvas.create_rectangle(
+            0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
+            fill=HUD_BG_COLOR,
+            stipple="gray25",
+            tags="ui"
+        )
+
+        # Game over shadow text
+        self.canvas.create_text(
+            WINDOW_WIDTH // 2 + 3, WINDOW_HEIGHT // 2 - 37,
+            text="GAME OVER",
+            fill=HUD_SHADOW_COLOR,
+            font=("Arial", GAME_OVER_FONT_SIZE, "bold"),
+            tags="ui"
+        )
         # Game over text
         self.game_over_text = self.canvas.create_text(
             WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40,
@@ -243,20 +316,36 @@ class SpaceShooterGame:
             tags="ui"
         )
 
-        # Final score
+        # Final score shadow
+        self.canvas.create_text(
+            WINDOW_WIDTH // 2 + 2, WINDOW_HEIGHT // 2 + 12,
+            text=f"Final Score: {self.score}",
+            fill=HUD_SHADOW_COLOR,
+            font=("Arial", 32, "bold"),
+            tags="ui"
+        )
+        # Final score in gold
         self.canvas.create_text(
             WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 10,
             text=f"Final Score: {self.score}",
-            fill=WHITE,
-            font=("Arial", 28, "bold"),
+            fill=GOLD,
+            font=("Arial", 32, "bold"),
             tags="ui"
         )
 
+        # Restart prompt shadow
+        self.canvas.create_text(
+            WINDOW_WIDTH // 2 + 2, WINDOW_HEIGHT // 2 + 62,
+            text="Click or press ENTER to play again",
+            fill=HUD_SHADOW_COLOR,
+            font=("Arial", RESTART_FONT_SIZE, "bold"),
+            tags="ui"
+        )
         # Restart prompt
         self.restart_text = self.canvas.create_text(
             WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 60,
             text="Click or press ENTER to play again",
-            fill=YELLOW,
+            fill=GOLD,
             font=("Arial", RESTART_FONT_SIZE, "bold"),
             tags="ui"
         )
@@ -268,7 +357,7 @@ class SpaceShooterGame:
         """Blink the restart prompt."""
         if self.restart_text and self.game_over:
             current = self.canvas.itemcget(self.restart_text, "fill")
-            new_color = YELLOW if current == DARK_GRAY else DARK_GRAY
+            new_color = GOLD if current == HUD_BORDER_COLOR else HUD_BORDER_COLOR
             try:
                 self.canvas.itemconfig(self.restart_text, fill=new_color)
             except tk.TclError:
@@ -340,8 +429,8 @@ class SpaceShooterGame:
         self.enemies = [e for e in self.enemies if e.active]
 
     def create_explosion_effect(self, x, y):
-        """Create a simple explosion particle effect."""
-        colors = [YELLOW, ORANGE, RED, WHITE]
+        """Create a simple explosion particle effect with vibrant colors."""
+        colors = [GOLD, AMBER, HOT_PINK, NEON_CYAN, WHITE, ORANGE]
         particles = []
 
         for _ in range(8):

@@ -36,8 +36,20 @@ class Player:
         self.shape = self.canvas.create_polygon(
             x1, y1, x2, y2, x3, y3,
             fill=PLAYER_COLOR,
-            outline=WHITE,
-            width=2,
+            outline=PLAYER_OUTLINE,
+            width=3,
+            tags="player"
+        )
+
+        # Add a small engine glow at the bottom
+        engine_x1 = self.x - 8
+        engine_y1 = self.y + self.height // 2 - 5
+        engine_x2 = self.x + 8
+        engine_y2 = self.y + self.height // 2 + 10
+        self.engine_glow = self.canvas.create_oval(
+            engine_x1, engine_y1, engine_x2, engine_y2,
+            fill=NEON_YELLOW,
+            outline="",
             tags="player"
         )
 
@@ -46,12 +58,14 @@ class Player:
         if self.x - self.width // 2 > 0:
             self.x -= self.speed
             self.canvas.move(self.shape, -self.speed, 0)
+            self.canvas.move(self.engine_glow, -self.speed, 0)
 
     def move_right(self):
         """Move the player right."""
         if self.x + self.width // 2 < WINDOW_WIDTH:
             self.x += self.speed
             self.canvas.move(self.shape, self.speed, 0)
+            self.canvas.move(self.engine_glow, self.speed, 0)
 
     def get_bullet_spawn_position(self):
         """Return (x, y) where bullets should spawn from."""
@@ -102,9 +116,15 @@ class Player:
             self.x + self.width // 2, self.y + self.height // 2,
             self.x, self.y - self.height // 2
         )
+        self.canvas.coords(
+            self.engine_glow,
+            self.x - 8, self.y + self.height // 2 - 5,
+            self.x + 8, self.y + self.height // 2 + 10
+        )
         self.make_invulnerable(2000)  # 2 seconds of invulnerability after respawn
 
     def destroy(self):
         """Remove the player from the canvas."""
         self.canvas.delete(self.shape)
+        self.canvas.delete(self.engine_glow)
 
